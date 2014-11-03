@@ -41,6 +41,9 @@ class ExeBuilder(object):
     def include_cwd_in_pythonpath(self):
         return True
 
+    def include_pythoncom_and_pywintypes_in_pythonpath(self):
+        return True
+
     def create_tmp_dir(self):
         tdir = tempfile.mkdtemp(prefix="pyexebuild")
         return tdir
@@ -93,30 +96,10 @@ sys.exec_prefix = %r
         return r"""
 sys.path = %s[(sys.prefix if p == '.' else sys.prefix + "\\" + p) for p in %r]
 import site
-sys.path += [(sys.prefix + "\\" + p) for p in %r]
 """ % (
             ("[''] + " if self.include_cwd_in_pythonpath() else ""),
-            self.get_relative_built_in_python_path(),
-            self.get_extra_relative_path_elements())
+            self.get_relative_built_in_python_path())
 
-    def get_extra_relative_path_elements(self):
-        e = []
-
-        #pywintypes and pythoncom have weird contortions to find DLLs: (look at the source in pywintypes.py)
-        #They also do something different if 'frozen' - which is the case when running from the exe
-        #We need to find the pywin32_system32 folder in our python tree and add it to the pythonpath:
-        try:
-            import win32com
-            pywin32_system32 = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(win32com.__file__)), 'pywin32_system32'))
-            if not os.path.exists(pywin32_system32):
-                raise Exception("Expected to find 'pywin32_system32' directory here: %s" % pywin32_system32)
-            if not in_directory(pywin32_system32, sys.prefix):
-                raise Exception("Expected 'pywin32_system32' directory to be a subdirectory of sys.prefix (%s): %s" %( sys.prefix, pywin32_system32))
-            e.append(os.path.relpath(pywin32_system32, sys.prefix))
-        except ImportError as e:
-            pass
-
-        return e
 
 # Subclass Target to specify these executables require Administrator
 class AdminTarget(Target):
