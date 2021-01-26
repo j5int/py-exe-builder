@@ -21,7 +21,6 @@ setup(
         'Intended Audience :: Developers',
         'Operating System :: Microsoft :: Windows',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2 :: Only',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
     install_requires = ["py2exe"],
