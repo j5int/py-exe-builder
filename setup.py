@@ -6,7 +6,7 @@ from setuptools import find_packages
 
 setup(
     name='py-exe-builder',
-    version='0.1',
+    version='0.2.dev1',
     packages = find_packages(),
     license='Apache License, Version 2.0',
     description='Uses py2exe to create small exe stubs that leverage a full python installation, rather than packing the required pyc files in to the executable.',
@@ -21,7 +21,6 @@ setup(
         'Intended Audience :: Developers',
         'Operating System :: Microsoft :: Windows',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2 :: Only',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
     install_requires = ["py2exe"],
