@@ -41,10 +41,6 @@ class custom_py2exe(build_exe):
             args = {}
             if self.exe_builder.icon:
                 args['icon_resources'] = [(1, self.exe_builder.icon)]
-            if self.exe_builder.console:
-                args['exe_type'] = 'console_exe'
-            else:
-                args['exe_type'] = 'windows_exe'
             if self.exe_builder.script or self.exe_builder.module_name:
                 if self.exe_builder.module_name:
                     src = r"""
@@ -58,14 +54,26 @@ runpy.run_module(%r, run_name='__main__', alter_sys=True)
                     script = name
                 else:
                     script = self.exe_builder.script
-                target = target_class(script=script, **args)
+                exe_type = 'console_exe' if self.exe_builder.console else 'windows_exe'
+                target = target_class(script=script, exe_type=exe_type, **args)
                 target.validate()
                 r = _custom_Runtime(self.exe_builder, self.get_options(self.exe_builder.dest_dir))
                 r.analyze()
                 exe_path = os.path.join(self.exe_builder.dest_dir, target.get_dest_base() + '.exe')
                 r.build_exe(target, exe_path, self.exe_builder.get_relative_lib_path())
             elif self.exe_builder.service_module:
-                raise NotImplementedError() # TODO
+                target = target_class(
+                    exe_type='service',
+                    modules=[self.exe_builder.service_module],
+                    cmdline_style='custom',
+                    dest_base=self.exe_builder.module_exe_base_name,
+                    **args
+                )
+                target.validate()
+                r = _custom_Runtime(self.exe_builder, self.get_options(self.exe_builder.dest_dir))
+                r.analyze()
+                exe_path = os.path.join(self.exe_builder.dest_dir, target.get_dest_base() + '.exe')
+                r.build_exe(target, exe_path, self.exe_builder.get_relative_lib_path())
         finally:
             for f in self._tmp_file_list:
                 if os.path.exists(f):

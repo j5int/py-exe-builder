@@ -1,6 +1,8 @@
 import os
+import signal
 import subprocess
 import sys
+import time
 
 import pytest
 
@@ -74,3 +76,12 @@ def test_import_pygit2(tmp_folder):
         pytest.skip("pygit2 not installed")
     else:
         assert compile_check_ouput(tmp_folder, "import_pygit2").rstrip() == pygit2.__version__
+
+
+def test_win_service(tmp_folder):
+    ExeBuilder(tmp_folder, service_module='pyexebuilder.test.sample.win_service').build()
+    p = subprocess.Popen([os.path.join(tmp_folder, 'win_service'), 'debug'])
+    time.sleep(5)
+    p.send_signal(signal.CTRL_C_EVENT)
+    p.wait()
+    assert p.returncode == 0
