@@ -32,24 +32,10 @@ def test_module_exe_name(tmp_folder):
     assert output.decode().rstrip() == "helloworld"
 
 
-def test_service_exe():
-    pytest.xfail("Not Implemented")
-
-
 def compile_check_ouput(tmp_folder, script_name):
     ExeBuilder(tmp_folder, script=os.path.join(os.path.dirname(__file__), 'sample', script_name + '.py')).build()
     output = subprocess.check_output(os.path.join(tmp_folder, script_name))
     return output.decode()
-
-
-@pytest.mark.xfail(reason="Not actually sure what the sys path should be")
-def test_syspath(tmp_folder):
-    assert compile_check_ouput(tmp_folder, "syspath").rstrip() == str(sys.path)
-
-
-@pytest.mark.xfail(run=False)
-def test_console():
-    pass
 
 
 def test_pywintypes(tmp_folder):
