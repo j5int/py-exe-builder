@@ -5,6 +5,9 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from dataclasses import dataclass
+
+from argparse import Namespace
 
 if sys.version_info[0] == 2:
     from .custom_py2exe_py2 import custom_py2exe
@@ -12,33 +15,74 @@ else:
     from .custom_py2exe_py3 import custom_py2exe
 
 
+@dataclass
+class VersionInfo:
+    """
+    Version information for a Windows executable.
+
+    Attributes found at https://github.com/py2exe/py2exe/blob/v0.13.0.2/py2exe/versioninfo.py#L192
+    """
+
+    version: str
+    comments: str | None = None
+    company_name: str | None = None
+    file_description: str | None = None
+    internal_name: str | None = None
+    legal_copyright: str | None = None
+    legal_trademarks: str | None = None
+    original_filename: str | None = None
+    private_build: str | None = None
+    product_name: str | None = None
+    product_version: str | None = None
+    special_build: str | None = None
+
+    def _as_namespace(self) -> Namespace:
+        return Namespace(**self.__dict__)
+
+
 def in_directory(f, directory):
-    #make both absolute
-    directory = os.path.join(os.path.abspath(directory), '')
+    # make both absolute
+    directory = os.path.join(os.path.abspath(directory), "")
     f = os.path.abspath(f)
 
-    if sys.platform.startswith('win'):
+    if sys.platform.startswith("win"):
         directory = directory.lower()
         f = f.lower()
 
-    #return true, if the common prefix of both is equal to directory
-    #e.g. /a/b/c/d.rst and directory is /a/b, the common prefix is /a/b
+    # return true, if the common prefix of both is equal to directory
+    # e.g. /a/b/c/d.rst and directory is /a/b, the common prefix is /a/b
     return os.path.commonprefix([f, directory]) == directory
 
 
 class ExeBuilder(object):
 
-    def __init__(self, dest_dir, script=None, module_name=None, module_exe_name=None, service_module=None, needs_admin=False, icon=None, console=True):
+    def __init__(
+        self,
+        dest_dir,
+        script=None,
+        module_name=None,
+        module_exe_name=None,
+        service_module=None,
+        needs_admin=False,
+        icon=None,
+        console=True,
+        version_info: VersionInfo | None = None,
+    ):
         self.dest_dir = dest_dir
         self.script = script
         self.service_module = service_module
         self.module_name = module_name
         if service_module or module_name:
-            self.module_exe_base_name = os.path.splitext(module_exe_name)[0] if module_exe_name else (service_module or module_name).split('.')[-1]
+            self.module_exe_base_name = (
+                os.path.splitext(module_exe_name)[0]
+                if module_exe_name
+                else (service_module or module_name).split(".")[-1]
+            )
         else:
             self.module_exe_base_name = None
         self.needs_admin = needs_admin
         self.icon = icon
+        self.version_info = version_info
         self.console = console
         self._tdir = None
 
@@ -147,4 +191,3 @@ if __name__ == '__main__':
     if not options.script and not options.service_module and not options.module_name:
         parser.error("Must provide either a script, a module name or a service module name")
     ExeBuilder(options.dest_dir, options.script, options.module_name, options.module_exe_name, options.service_module, options.admin, options.icon).build()
-
